@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  web:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      - APP_DATA_DIR=/data
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:////data/app.db
+      - PUBLIC_BASE_URL=http://localhost:8000
+      # First-run default: CPU-friendly model. Change to "medium" or "large-v3" if you have GPU/CPU budget.
+      - WHISPER_MODEL=small
+    volumes:
+      - ./data:/data
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  worker:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      - APP_DATA_DIR=/data
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:////data/app.db
+      - PUBLIC_BASE_URL=http://localhost:8000
+      - WHISPER_MODEL=small
+    volumes:
+      - ./data:/data
+    depends_on:
+      - redis
+    command: ["python", "-m", "app.worker"]
+
