@@ -1,0 +1,10 @@
+flask
+yt-dlp
+ffmpeg-python
+faster-whisper
+scikit-learn
+nltk
+moviepy
+requests
+schedule
+sqlalchemy
